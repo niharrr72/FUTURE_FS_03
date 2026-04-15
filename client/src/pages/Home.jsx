@@ -10,11 +10,15 @@ export default function Home() {
   const [items, setItems] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
 
+  console.log('Home Component: current user is', user);
+
   useEffect(() => {
     if (!user) {
+      console.log('Home: No user found, redirecting to /login');
       navigate('/login');
       return;
     }
+    console.log('Home: User found, fetching menu...');
     api.get('/menu').then(res => {
       setItems(res.data);
     }).catch(console.error);
