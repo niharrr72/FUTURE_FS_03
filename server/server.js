@@ -1,10 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const http = require('http');
 const { Server } = require('socket.io');
-const Order = require('./models/Order');
+const supabase = require('./config/supabase'); // Directly query Supabase
 
 const app = express();
 const server = http.createServer(app);
@@ -18,10 +17,6 @@ const io = new Server(server, {
     methods: ['GET', 'POST', 'PATCH']
   }
 });
-
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/darjeeling_momos')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
 
 // Make io accessible to our router
 app.use((req, res, next) => {
@@ -48,18 +43,27 @@ const PROGRESSION_INTERVAL_MS = 6 * 60 * 1000; // Strictly 6 minutes per rules
 
 setInterval(async () => {
   try {
-    const activeOrders = await Order.find({ status: { $nin: ['delivered', 'picked_up'] } });
-    if (activeOrders.length === 0) return;
+    const { data: activeOrders, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        custom_users (
+          name, phone
+        )
+      `)
+      .not('status', 'in', '("delivered","picked_up")');
+
+    if (error || !activeOrders || activeOrders.length === 0) return;
 
     const now = Date.now();
 
     for (const order of activeOrders) {
-      const timeSinceUpdate = now - new Date(order.updatedAt).getTime();
+      const timeSinceUpdate = now - new Date(order.updated_at).getTime();
       
       if (timeSinceUpdate >= PROGRESSION_INTERVAL_MS) {
         let nextStatus;
 
-        if (order.orderType === 'pickup') {
+        if (order.order_type === 'pickup') {
           const pickupFlow = ['received', 'preparing', 'ready_for_pickup', 'picked_up'];
           const currentIndex = pickupFlow.indexOf(order.status);
           
@@ -78,11 +82,42 @@ setInterval(async () => {
         }
 
         if (nextStatus) {
-          order.status = nextStatus;
-          await order.save(); // Advances the updatedAt timestamp automatically
+          const { data: updatedOrder, error: updateError } = await supabase
+            .from('orders')
+            .update({ status: nextStatus, updated_at: new Date().toISOString() })
+            .eq('id', order.id)
+            .select(`
+              *,
+              custom_users (
+                name, phone
+              )
+            `)
+            .single();
 
-          // Broadcast to everyone listening (Customers and Admin)
-          io.emit('order:statusUpdate', order);
+          if (!updateError) {
+            // Re-map to camelCase to match frontend models expected by socket events
+            const mappedOrder = {
+              _id: updatedOrder.id,
+              id: updatedOrder.id,
+              customerId: updatedOrder.custom_users ? {
+                _id: updatedOrder.customer_id,
+                name: updatedOrder.custom_users.name,
+                phone: updatedOrder.custom_users.phone
+              } : updatedOrder.customer_id,
+              customerName: updatedOrder.customer_name,
+              phone: updatedOrder.phone,
+              items: updatedOrder.items,
+              orderType: updatedOrder.order_type,
+              deliveryAddress: updatedOrder.delivery_address,
+              total: updatedOrder.total,
+              status: updatedOrder.status,
+              createdAt: updatedOrder.created_at,
+              updatedAt: updatedOrder.updated_at
+            };
+
+            // Broadcast to everyone listening (Customers and Admin)
+            io.emit('order:statusUpdate', mappedOrder);
+          }
         }
       }
     }
