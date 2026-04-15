@@ -9,7 +9,6 @@ Darjeeling Momos is a full-stack, state-of-the-art food delivery application des
 ## 📸 Visual Preview
 
 ![Landing Page Preview](./landing_preview.png)
-![Login Page Preview](./login_preview.png)
 
 ---
 
