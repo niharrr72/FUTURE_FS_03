@@ -31,20 +31,39 @@ export default function Login() {
   const switchTab  = (t) => { setTab(t);  setError(''); };
 
   const handleLogin = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true);
+    e.preventDefault(); 
+    setError(''); 
+    setLoading(true);
+    console.log('Attempting login for:', isAdmin ? loginData.email : loginData.phone);
+    
     try {
       const payload = isAdmin
         ? { email: loginData.email, password: loginData.password, isAdminLogin: true }
         : { phone: loginData.phone, password: loginData.password };
+        
       const res = await api.post('/auth/login', payload);
+      console.log('Login response:', res.data);
+
       if (isAdmin && res.data.user?.role !== 'admin') {
         setError('This account does not have admin access.');
         return;
       }
+      
       setUser(res.data.user, res.data.token);
-      navigate(res.data.user?.role === 'admin' ? '/admin' : '/');
-    } catch (err) { setError(err.response?.data?.message || 'Invalid credentials'); }
-    finally { setLoading(false); }
+      
+      // Give store a tiny millisecond to settle
+      setTimeout(() => {
+        const target = res.data.user?.role === 'admin' ? '/admin' : '/';
+        console.log('Navigating to:', target);
+        navigate(target);
+      }, 100);
+
+    } catch (err) { 
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Invalid credentials or connection error'); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleRegister = async (e) => {
