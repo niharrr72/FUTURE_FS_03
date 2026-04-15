@@ -9,8 +9,7 @@ Darjeeling Momos is a full-stack, state-of-the-art food delivery application des
 ## 📸 Visual Preview
 
 ![Login Page Preview](./login_preview.png)
-
-*Our signature landing page featuring a split-screen design, continuous forest fire animation, and an orbiting BBQ food wheel.*
+![Landing Page Preview](./landing_preview.png)
 
 ---
 
