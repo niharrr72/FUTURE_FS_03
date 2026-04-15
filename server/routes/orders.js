@@ -216,4 +216,61 @@ router.patch('/:id/status', async (req, res) => {
   }
 });
 
+router.patch('/cancel/:id', async (req, res) => {
+  try {
+    const { data: order, error: fetchError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError || !order) return res.status(404).json({ message: 'Order not found.' });
+
+    // Cancellation logic: Only if not already processed past 'preparing'
+    const forbiddenStatuses = ['ready', 'ready_for_pickup', 'out_for_delivery', 'delivered', 'picked_up', 'cancelled'];
+    if (forbiddenStatuses.includes(order.status)) {
+      return res.status(400).json({ message: `Cannot cancel order in '${order.status.replace(/_/g, ' ')}' stage.` });
+    }
+
+    const { data: updatedOrder, error: updateError } = await supabase
+      .from('orders')
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    const mappedOrder = {
+      _id: updatedOrder.id,
+      id: updatedOrder.id,
+      status: 'cancelled',
+      // ... minimal return for frontend update
+    };
+
+    if (req.io) {
+      req.io.emit('order:statusUpdate', { ...updatedOrder, _id: updatedOrder.id });
+    }
+
+    // Notify Admin via Email
+    transporter.sendMail({
+      from: `Darjeeling Momos <${process.env.ADMIN_EMAIL}>`,
+      to: process.env.ADMIN_EMAIL,
+      subject: `Order CANCELLED! #${updatedOrder.id.toString().slice(-6).toUpperCase()}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #ef4444;">Order Cancelled by Customer</h2>
+          <p><strong>Order ID:</strong> #${updatedOrder.id}</p>
+          <p><strong>Customer Name:</strong> ${updatedOrder.customer_name}</p>
+          <p><strong>Refund Status:</strong> Please check if payment was made (Manual handling).</p>
+        </div>
+      `
+    }).catch(e => console.error('Admin cancellation alert failed:', e.message));
+
+    res.json({ message: 'Order cancelled successfully', order: mappedOrder });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
