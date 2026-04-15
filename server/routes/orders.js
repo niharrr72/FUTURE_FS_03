@@ -8,7 +8,10 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.ADMIN_EMAIL,
     pass: process.env.ADMIN_EMAIL_PASSWORD || process.env.ADMIN_PASSWORD
-  }
+  },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000,
+  socketTimeout: 15000
 });
 
 router.post('/', async (req, res) => {
@@ -65,9 +68,8 @@ router.post('/', async (req, res) => {
       const itemsList = Array.isArray(populatedOrder.items) ? populatedOrder.items : [];
       const itemsHtml = itemsList.map(i => `<li>${i.qty}x ${i.name}</li>`).join('');
       
-      console.log(`Attempting to send email alert to ${process.env.ADMIN_EMAIL}...`);
-      
-      await transporter.sendMail({
+      // Fire off email in background - DO NOT AWAIT to keep checkout instant
+      transporter.sendMail({
         from: `Darjeeling Momos <${process.env.ADMIN_EMAIL}>`,
         to: process.env.ADMIN_EMAIL, 
         subject: `New Order Alert! #${populatedOrder.id.toString().slice(-6).toUpperCase()}`,
@@ -85,10 +87,9 @@ router.post('/', async (req, res) => {
             <p style="font-size: 0.8rem; color: #999; margin-top: 30px;">Order ID: ${populatedOrder.id}</p>
           </div>
         `
-      });
-      console.log('Admin email alert sent successfully.');
+      }).then(() => console.log('Admin email alert sent.')).catch(e => console.error('Email alert failed:', e.message));
     } catch (mailErr) {
-      console.error('Email alerting failed:', mailErr.message);
+      console.error('Email logic failed:', mailErr.message);
     }
 
     res.json(populatedOrder);
