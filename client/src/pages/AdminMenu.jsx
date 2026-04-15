@@ -84,7 +84,7 @@ export default function AdminMenu() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase text-xs">
-              <th className="p-4">Name</th>
+              <th className="p-4">Item</th>
               <th className="p-4">Category</th>
               <th className="p-4">Price</th>
               <th className="p-4">Type</th>
@@ -95,7 +95,12 @@ export default function AdminMenu() {
           <tbody>
             {items.map(item => isEditing === item._id ? (
               <tr key={item._id} className="border-b bg-orange-50 transition-colors">
-                <td className="p-3"><input className="w-full p-2 border border-brand-amber/50 rounded-lg outline-none focus:ring-1 focus:ring-brand-orange" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} /></td>
+                <td className="p-3">
+                  <div className="flex flex-col gap-2">
+                    <input className="w-full p-2 border border-brand-amber/50 rounded-lg outline-none focus:ring-1 focus:ring-brand-orange" placeholder="Name" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} />
+                    <input className="w-full p-2 border border-brand-amber/50 rounded-lg outline-none text-xs" placeholder="Image URL" value={editForm.imageUrl} onChange={e => setEditForm({...editForm, imageUrl: e.target.value})} />
+                  </div>
+                </td>
                 <td className="p-3">
                   <select className="p-2 border border-brand-amber/50 rounded-lg w-full outline-none" value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})}>
                     <option value="momos">Momos</option><option value="noodles">Noodles</option><option value="rice">Rice</option><option value="starters">Starters</option><option value="soup">Soup</option>
@@ -119,7 +124,17 @@ export default function AdminMenu() {
               </tr>
             ) : (
               <tr key={item._id} className="border-b hover:bg-gray-50 transition-colors">
-                <td className="p-4 font-bold text-gray-800">{item.name}</td>
+                <td className="p-4">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={item.imageUrl} 
+                      alt="" 
+                      className="w-10 h-10 rounded-lg object-cover bg-gray-100 shadow-sm border border-gray-100"
+                      onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=' + item.name + '&background=fef3c7&color=d97706'} 
+                    />
+                    <span className="font-bold text-gray-800">{item.name}</span>
+                  </div>
+                </td>
                 <td className="p-4 text-sm text-gray-600 capitalize">{item.category}</td>
                 <td className="p-4 font-bold text-gray-800">₹{item.price}</td>
                 <td className="p-4">
