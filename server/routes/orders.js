@@ -60,23 +60,36 @@ router.post('/', async (req, res) => {
       req.io.emit('order:new', populatedOrder);
     }
     
-    const itemsHtml = populatedOrder.items.map(i => `<li>${i.qty}x ${i.name}</li>`).join('');
-    transporter.sendMail({
-      from: process.env.ADMIN_EMAIL,
-      to: process.env.ADMIN_EMAIL, 
-      subject: `New Order Alert! #${populatedOrder.id.toString().slice(-6).toUpperCase()}`,
-      html: `
-        <h2>New Order Received! 🥟</h2>
-        <p><strong>Total Value:</strong> ₹${populatedOrder.total}</p>
-        <p><strong>Purchased By Account:</strong> ${populatedOrder.customerId?.name || 'Guest'} (${populatedOrder.customerId?.phone || 'N/A'})</p>
-        <hr/>
-        <p><strong>Delivery To Name:</strong> ${populatedOrder.customerName}</p>
-        <p><strong>Delivery Phone:</strong> ${populatedOrder.phone}</p>
-        <p><strong>Type:</strong> ${populatedOrder.orderType}</p>
-        <p><strong>Items:</strong></p>
-        <ul>${itemsHtml}</ul>
-      `
-    }).catch(err => console.log('Email block: requires App Password setup.'));
+    // --- Email Notification ---
+    try {
+      const itemsList = Array.isArray(populatedOrder.items) ? populatedOrder.items : [];
+      const itemsHtml = itemsList.map(i => `<li>${i.qty}x ${i.name}</li>`).join('');
+      
+      console.log(`Attempting to send email alert to ${process.env.ADMIN_EMAIL}...`);
+      
+      await transporter.sendMail({
+        from: `Darjeeling Momos <${process.env.ADMIN_EMAIL}>`,
+        to: process.env.ADMIN_EMAIL, 
+        subject: `New Order Alert! #${populatedOrder.id.toString().slice(-6).toUpperCase()}`,
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #f97316;">New Order Received! 🥟</h2>
+            <p style="font-size: 1.1rem;"><strong>Total Value:</strong> ₹${populatedOrder.total}</p>
+            <p><strong>Customer:</strong> ${populatedOrder.customerId?.name || 'Guest'} (${populatedOrder.customerId?.phone || 'N/A'})</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;"/>
+            <p><strong>Recipient Name:</strong> ${populatedOrder.customerName}</p>
+            <p><strong>Recipient Phone:</strong> ${populatedOrder.phone}</p>
+            <p><strong>Order Type:</strong> <span style="text-transform: capitalize;">${populatedOrder.orderType}</span></p>
+            <p><strong>Items:</strong></p>
+            <ul style="background: #fdf2f2; padding: 15px 30px; border-radius: 10px;">${itemsHtml}</ul>
+            <p style="font-size: 0.8rem; color: #999; margin-top: 30px;">Order ID: ${populatedOrder.id}</p>
+          </div>
+        `
+      });
+      console.log('Admin email alert sent successfully.');
+    } catch (mailErr) {
+      console.error('Email alerting failed:', mailErr.message);
+    }
 
     res.json(populatedOrder);
   } catch (error) {
