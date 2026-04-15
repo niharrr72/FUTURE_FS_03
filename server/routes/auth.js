@@ -58,15 +58,37 @@ router.post('/login', async (req, res) => {
   try {
     const { phone, email, password, isAdminLogin } = req.body;
 
-    // Admin login — default credentials flow overrides Supabase for admins
+    // Admin login — default credentials flow verified against .env, but identity from DB
     if (isAdminLogin) {
       const adminEmail = email || phone;
       if (
         adminEmail === process.env.ADMIN_EMAIL &&
         password   === process.env.ADMIN_PASSWORD
       ) {
-        const token = jwt.sign({ id: 'admin-static', role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
-        return res.json({ token, user: { id: 'admin', name: 'Admin', email: process.env.ADMIN_EMAIL, role: 'admin' } });
+        // Find the seeded admin user in DB to get the real UUID
+        const { data: adminUser, error: adminError } = await supabase
+          .from('custom_users')
+          .select('*')
+          .eq('role', 'admin')
+          .single();
+
+        if (adminError || !adminUser) {
+           // Fallback if not seeded yet - but profiles won't work
+           const token = jwt.sign({ id: '00000000-0000-0000-0000-000000000000', role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+           return res.json({ token, user: { id: 'admin', name: 'Admin', email: process.env.ADMIN_EMAIL, role: 'admin' } });
+        }
+
+        const token = jwt.sign({ id: adminUser.id, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+        return res.json({ 
+          token, 
+          user: { 
+            id: adminUser.id, 
+            name: adminUser.name, 
+            email: adminUser.email, 
+            phone: adminUser.phone,
+            role: 'admin' 
+          } 
+        });
       }
       return res.status(401).json({ message: 'Invalid admin credentials.' });
     }
