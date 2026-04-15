@@ -11,7 +11,12 @@ router.get('/', async (req, res) => {
       .order('tier', { ascending: true }); // Using 'tier' if we use it for Steamers, otherwise any logic
 
     if (error) throw error;
-    res.json(menu);
+    res.json(menu.map(item => ({
+      ...item,
+      _id: item.id,
+      isVeg: item.is_veg,
+      imageUrl: item.image_url
+    })));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -25,7 +30,12 @@ router.get('/all', async (req, res) => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    res.json(menu);
+    res.json(menu.map(item => ({
+      ...item,
+      _id: item.id,
+      isVeg: item.is_veg,
+      imageUrl: item.image_url
+    })));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -51,6 +61,7 @@ router.post('/', async (req, res) => {
     if (error) throw error;
     
     // Convert to camelCase format matching frontend
+    item._id = item.id;
     item.isVeg = item.is_veg;
     item.imageUrl = item.image_url;
     res.json(item);
@@ -80,6 +91,7 @@ router.patch('/:id', async (req, res) => {
 
     if (error) throw error;
     
+    item._id = item.id;
     item.isVeg = item.is_veg;
     item.imageUrl = item.image_url;
     res.json(item);
@@ -100,6 +112,7 @@ router.delete('/:id', async (req, res) => {
     if (error) throw error;
     
     if (item) {
+       item._id = item.id;
        item.isVeg = item.is_veg;
        item.imageUrl = item.image_url;
     }
