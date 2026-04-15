@@ -8,13 +8,11 @@ export default function CartDrawer() {
   const { cart, removeFromCart, updateCartQty, clearCart, user, isCartOpen, setCartOpen } = useStore();
   
   const [orderType, setOrderType] = useState('delivery');
-  
-  // Delivery Customizations
   const [deliveryTarget, setDeliveryTarget] = useState('me'); // 'me' or 'other'
   const [address, setAddress] = useState(user?.savedAddress?.text || '');
   const [customName, setCustomName] = useState('');
   const [customPhone, setCustomPhone] = useState('');
-
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const total = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
@@ -33,6 +31,7 @@ export default function CartDrawer() {
       return;
     }
 
+    setIsLoading(true);
     try {
       const isCustom = deliveryTarget === 'other';
       const orderData = {
@@ -46,21 +45,30 @@ export default function CartDrawer() {
       };
 
       await api.post('/orders', orderData);
+      
+      // Clear all states and close drawer
       clearCart();
+      setAddress('');
+      setCustomName('');
+      setCustomPhone('');
       setCartOpen(false);
+      
+      // Flash a quick transition
       navigate('/tracker');
     } catch (error) {
       console.error('Checkout failed', error);
-      alert('Checkout failed');
+      alert('Checkout failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   if (!isCartOpen) return null;
 
-  const isCheckoutDisabled = orderType === 'delivery' && (
+  const isCheckoutDisabled = isLoading || (orderType === 'delivery' && (
     !address || 
     (deliveryTarget === 'other' && (!customName || !customPhone))
-  );
+  ));
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-end">
@@ -188,9 +196,16 @@ export default function CartDrawer() {
             <button 
               onClick={handleCheckout}
               disabled={isCheckoutDisabled}
-              className="w-full bg-brand-orange text-white py-4 rounded-xl font-bold text-lg shadow-[0_10px_20px_rgba(249,115,22,0.3)] hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1 transition-all active:scale-95"
+              className="w-full bg-brand-orange text-white py-4 rounded-xl font-bold text-lg shadow-[0_10px_20px_rgba(249,115,22,0.3)] hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-2"
             >
-              Checkout Seamlessly
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Checkout Seamlessly'
+              )}
             </button>
           </div>
         )}
