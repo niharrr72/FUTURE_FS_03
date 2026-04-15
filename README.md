@@ -1,6 +1,6 @@
 # 🥟 Darjeeling Momos - Premium Delivery Platform
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-orange?style=for-the-badge)](https://darjeeling-momos-client.onrender.com)
+[![Live Demo](https://darjeeling-momos-client.onrender.com)
 
 Darjeeling Momos is a full-stack, state-of-the-art food delivery application designed to offer a premium experience for authentic Himalayan cuisine Lovers. Built with a focus on immersive UX, real-time tracking, and cloud-native security.
 
