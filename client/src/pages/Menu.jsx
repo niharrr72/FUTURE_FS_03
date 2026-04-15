@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useStore } from '../store/useStore';
 import { Plus, X, Utensils } from 'lucide-react';
@@ -16,13 +16,14 @@ export default function Menu() {
   const tiers = [
     { id: 'momos', label: 'Momos', color: '#fcaa36' },
     { id: 'noodles', label: 'Noodles', color: '#ffcf54' },
-    { id: 'starters', label: 'Starters', color: '#fcaa36' },
-    { id: 'soup', label: 'Soup', color: '#ffcf54' },
+    { id: 'rice', label: 'Rice', color: '#fcaa36' },
+    { id: 'starters', label: 'Starters', color: '#ffcf54' },
+    { id: 'soup', label: 'Soup', color: '#fcaa36' },
   ];
   const filteredItems = items.filter(item => {
     if (item.category !== selectedTier) return false;
-    if (activeTab === 'veg' && !item.veg) return false;
-    if (activeTab === 'chicken' && item.veg) return false;
+    if (activeTab === 'veg' && !item.isVeg) return false;
+    if (activeTab === 'chicken' && item.isVeg) return false;
     return true;
   });
 

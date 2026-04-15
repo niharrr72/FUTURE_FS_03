@@ -120,8 +120,8 @@ export default function Home() {
                   <div className="px-4 pt-3 pb-4 flex-1 flex flex-col gap-1">
                     <div className="flex justify-between items-start mb-1">
                        <h3 className="font-bold text-lg text-brand-dark leading-snug pr-2">{item.name}</h3>
-                       <div className={`w-4 h-4 rounded-sm border-2 ${item.veg ? 'border-green-600' : 'border-red-600'} flex-shrink-0 flex items-center justify-center`}>
-                          <div className={`w-2 h-2 rounded-full ${item.veg ? 'bg-green-600' : 'bg-red-600'}`} />
+                       <div className={`w-4 h-4 rounded-sm border-2 ${item.isVeg ? 'border-green-600' : 'border-red-600'} flex-shrink-0 flex items-center justify-center`}>
+                          <div className={`w-2 h-2 rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`} />
                        </div>
                     </div>
                     
