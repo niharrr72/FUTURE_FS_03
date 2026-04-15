@@ -4,6 +4,35 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { User, Phone, Mail, MapPin, Lock, Save, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 
+const Field = ({ icon: Icon, label, type = 'text', value, onChange, placeholder, autoComplete, disabled = false, note }) => (
+  <div className="flex flex-col gap-1.5">
+    <div className="flex justify-between items-center">
+      <label style={{ fontSize: '0.72rem', fontWeight: 800, color: '#9CA3AF', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        {label}
+      </label>
+      {note && <span className="text-[10px] text-orange-500 font-bold uppercase">{note}</span>}
+    </div>
+    <div className="relative flex items-center">
+      <Icon size={16} className={`absolute left-4 ${disabled ? 'text-gray-300' : 'text-gray-400'} flex-shrink-0`} />
+      <input
+        type={type} autoComplete={autoComplete}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => !disabled && onChange(e.target.value)}
+        disabled={disabled}
+        className={`w-full rounded-xl outline-none transition ${disabled ? 'cursor-not-allowed opacity-70' : ''}`}
+        style={{ padding: '0.875rem 1rem 0.875rem 2.75rem',
+                 border: `1.5px solid ${disabled ? '#F3F4F6' : '#E5E7EB'}`, 
+                 background: disabled ? '#F9FAFB' : '#fff', 
+                 color: disabled ? '#9CA3AF' : '#111', 
+                 fontSize: '0.95rem' }}
+        onFocus={e => !disabled && (e.target.style.borderColor = '#F97316')}
+        onBlur={e  => !disabled && (e.target.style.borderColor = '#E5E7EB')}
+      />
+    </div>
+  </div>
+);
+
 export default function Profile() {
   const { user, token, setUser } = useStore();
   const navigate = useNavigate();
@@ -73,35 +102,6 @@ export default function Profile() {
       setError(err.response?.data?.message || 'Failed to save profile.');
     } finally { setSaving(false); }
   };
-
-  const Field = ({ icon: Icon, label, type = 'text', value, onChange, placeholder, autoComplete, disabled = false, note }) => (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex justify-between items-center">
-        <label style={{ fontSize: '0.72rem', fontWeight: 800, color: '#9CA3AF', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          {label}
-        </label>
-        {note && <span className="text-[10px] text-orange-500 font-bold uppercase">{note}</span>}
-      </div>
-      <div className="relative flex items-center">
-        <Icon size={16} className={`absolute left-4 ${disabled ? 'text-gray-300' : 'text-gray-400'} flex-shrink-0`} />
-        <input
-          type={type} autoComplete={autoComplete}
-          placeholder={placeholder}
-          value={value}
-          onChange={e => !disabled && onChange(e.target.value)}
-          disabled={disabled}
-          className={`w-full rounded-xl outline-none transition ${disabled ? 'cursor-not-allowed opacity-70' : ''}`}
-          style={{ padding: '0.875rem 1rem 0.875rem 2.75rem',
-                   border: `1.5px solid ${disabled ? '#F3F4F6' : '#E5E7EB'}`, 
-                   background: disabled ? '#F9FAFB' : '#fff', 
-                   color: disabled ? '#9CA3AF' : '#111', 
-                   fontSize: '0.95rem' }}
-          onFocus={e => !disabled && (e.target.style.borderColor = '#F97316')}
-          onBlur={e  => !disabled && (e.target.style.borderColor = '#E5E7EB')}
-        />
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#fafafa] pt-24 pb-16 px-4">
