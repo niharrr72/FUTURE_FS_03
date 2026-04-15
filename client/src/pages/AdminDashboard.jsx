@@ -60,7 +60,7 @@ export default function AdminDashboard() {
   const statuses = ['received', 'preparing', 'ready', 'out_for_delivery', 'delivered'];
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 md:p-6 pb-20 pt-24 min-h-screen">
+    <div className="w-full max-w-4xl mx-auto p-4 md:p-6 pt-24 md:pt-32 pb-20 min-h-screen">
       
       <div className="flex justify-between items-center mb-6 border-b pb-4">
         <h2 className="text-3xl font-bold font-serif text-brand-dark flex items-center gap-2">
