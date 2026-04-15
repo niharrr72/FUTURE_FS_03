@@ -102,8 +102,6 @@ router.patch('/profile', async (req, res) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    if (decoded.role === 'admin') return res.status(403).json({ message: 'Admin profile is not editable here.' });
-
     const { name, email, phone, currentPassword, newPassword, savedAddress } = req.body;
 
     const { data: user, error: fetchError } = await supabase
@@ -122,10 +120,17 @@ router.patch('/profile', async (req, res) => {
       updates.password_hash = await bcrypt.hash(newPassword, 10);
     }
 
-    if (name)         updates.name  = name;
-    if (email)        updates.email = email;
-    if (phone)        updates.phone = phone;
-    if (savedAddress) updates.saved_address = savedAddress;
+    if (name) updates.name = name;
+    
+    // Role-based logic for fixed identifiers
+    if (decoded.role === 'customer') {
+      if (email) updates.email = email;
+      // Phone is FIXED for customers
+      if (savedAddress) updates.saved_address = savedAddress;
+    } else if (decoded.role === 'admin') {
+      if (phone) updates.phone = phone;
+      // Email is FIXED for admins
+    }
 
     const { data: updatedUser, error: updateError } = await supabase
       .from('custom_users')

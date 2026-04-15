@@ -26,6 +26,9 @@ export default function Navbar() {
               <Link to="/admin/menu" className="text-brand-dark font-medium hover:text-brand-orange flex items-center gap-1">
                 <Settings size={20} /> <span className="hidden sm:inline">Menu Config</span>
               </Link>
+              <Link to="/profile" className="text-brand-dark font-medium hover:text-brand-orange flex items-center gap-1">
+                <UserCircle size={20} /> <span className="hidden sm:inline">Settings</span>
+              </Link>
             </>
           ) : (
             <>
@@ -33,6 +36,7 @@ export default function Navbar() {
                 <ClipboardList size={20} /> <span className="hidden sm:inline">Orders</span>
               </Link>
               <Link to="/menu" className="text-brand-dark font-medium hover:text-brand-orange">Menu</Link>
+              <Link to="/profile" className="text-brand-dark font-medium hover:text-brand-orange">Profile</Link>
               <button onClick={() => useStore.getState().setCartOpen(true)} className="relative p-2 text-brand-dark hover:text-brand-orange">
                 <ShoppingCart size={24} />
                 {cartItemCount > 0 && (
