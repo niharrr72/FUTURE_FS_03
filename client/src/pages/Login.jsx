@@ -50,6 +50,7 @@ export default function Login() {
       }
       
       setUser(res.data.user, res.data.token);
+      setLoginData({ phone: '', email: '', password: '' });
       
       // Give store a tiny millisecond to settle
       setTimeout(() => {
