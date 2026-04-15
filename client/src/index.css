@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-brand-cream text-brand-dark antialiased m-0 p-0 font-sans;
+  }
+}
+
+/* Base custom styles without JS/React needed */
+@layer utilities {
+  .steam-particle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    filter: blur(8px);
+    animation: rise 4s linear infinite;
+  }
+}
